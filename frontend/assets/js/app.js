@@ -65,11 +65,13 @@ function updateUserInfo() {
 }
 
 function initializeApp() {
+    console.log('Initializing app...');
     initializeNavigation();
     loadCategories();
     
     // Show warehouse by default or restore saved page
     const savedPage = localStorage.getItem('currentPage') || 'warehouse';
+    console.log('Saved page from localStorage:', savedPage);
     switchPage(savedPage);
 }
 
@@ -124,10 +126,14 @@ async function apiRequest(url, options = {}) {
 
 // Navigation
 function initializeNavigation() {
+    console.log('Initializing navigation...');
     const navButtons = document.querySelectorAll('.nav-btn');
+    console.log('Found nav buttons:', navButtons.length);
+    
     navButtons.forEach(btn => {
         btn.addEventListener('click', function() {
             const page = this.dataset.page;
+            console.log('Navigation clicked:', page);
             switchPage(page);
         });
     });
@@ -164,6 +170,8 @@ function sortItems(column) {
 }
 
 function switchPage(page) {
+    console.log('Switching to page:', page);
+    
     // Hide all pages
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     
@@ -171,8 +179,23 @@ function switchPage(page) {
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     
     // Show selected page and activate nav button
-    document.getElementById(page).classList.add('active');
-    document.querySelector(`[data-page="${page}"]`).classList.add('active');
+    const targetPage = document.getElementById(page);
+    const targetButton = document.querySelector(`[data-page="${page}"]`);
+    
+    console.log('Target page element:', targetPage);
+    console.log('Target button element:', targetButton);
+    
+    if (targetPage) {
+        targetPage.classList.add('active');
+    } else {
+        console.error('Page element not found:', page);
+    }
+    
+    if (targetButton) {
+        targetButton.classList.add('active');
+    } else {
+        console.error('Button element not found for page:', page);
+    }
     
     currentPage = page;
     
