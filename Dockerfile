@@ -15,14 +15,11 @@ COPY backend/ ./
 # Copy frontend static files
 COPY frontend/ ./public/
 
-# Copy start.sh from root
-COPY start.sh ./
-
-# Make start.sh executable
-RUN chmod +x start.sh
+# Copy start.js from root
+COPY start.js ./
 
 # Expose port
 EXPOSE 3000
 
-# Use start.sh as entrypoint
-ENTRYPOINT ["./start.sh"]
+# Use start.js as entrypoint
+CMD ["node", "start.js"]
