@@ -29,6 +29,26 @@ app.use('/api/', limiter);
 // Database connection
 const db = require('./config/database');
 
+// Health check endpoint
+app.get('/api/health', async (req, res) => {
+  try {
+    // Check database connection
+    await db.query('SELECT 1');
+    res.json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      database: 'connected'
+    });
+  } catch (error) {
+    res.status(503).json({ 
+      status: 'unhealthy', 
+      timestamp: new Date().toISOString(),
+      database: 'disconnected',
+      error: error.message
+    });
+  }
+});
+
 // Routes
 app.use('/api/items', require('./routes/items'));
 app.use('/api/categories', require('./routes/categories'));
