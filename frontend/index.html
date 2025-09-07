@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R&D CRM - Управління компонентами</title>
+    <link rel="stylesheet" href="assets/css/style.css?v=11">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="logo">R&D CRM</h1>
+            <nav class="nav">
+                <button class="nav-btn active" data-page="warehouse">
+                    <span class="material-icons">warehouse</span>
+                    Склад
+                </button>
+                <button class="nav-btn" data-page="items">
+                    <span class="material-icons">inventory</span>
+                    Компоненти
+                </button>
+                <button class="nav-btn" data-page="purchases">
+                    <span class="material-icons">shopping_cart</span>
+                    Закупівлі
+                </button>
+                <button class="nav-btn" data-page="presets">
+                    <span class="material-icons">bookmark</span>
+                    Пресети
+                </button>
+                <button class="nav-btn" data-page="categories">
+                    <span class="material-icons">category</span>
+                    Категорії
+                </button>
+                <button class="nav-btn" data-page="transactions">
+                    <span class="material-icons">history</span>
+                    Історія
+                </button>
+            </nav>
+            <div class="user-info">
+                <span class="material-icons">account_circle</span>
+                <span>Адміністратор</span>
+                <button class="logout-btn" onclick="logout()" title="Вийти">
+                    <span class="material-icons">logout</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Page -->
+        <div id="dashboard" class="page active">
+            <div class="page-header">
+                <h2>Панель управління</h2>
+                <p>Загальна статистика та швидкий доступ до функцій</p>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <span class="material-icons">inventory</span>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="total-components">0</h3>
+                        <p>Всього компонентів</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <span class="material-icons">build</span>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="total-tools">0</h3>
+                        <p>Всього інструментів</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <span class="material-icons">warning</span>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="low-stock">0</h3>
+                        <p>Закінчується</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <span class="material-icons">pending</span>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="pending-requests">0</h3>
+                        <p>Запити на закупівлю</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <h3>Швидкі дії</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="showAddItemModal()">
+                        <span class="material-icons">add</span>
+                        Додати компонент
+                    </button>
+                    <button class="btn btn-secondary" onclick="showAddPresetModal()">
+                        <span class="material-icons">category</span>
+                        Створити пресет
+                    </button>
+                    <button class="btn btn-secondary" onclick="showPurchaseRequestModal()">
+                        <span class="material-icons">shopping_cart</span>
+                        Запит на закупівлю
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Page -->
+        <div id="items" class="page">
+            <div class="page-header">
+                <h2>Управління компонентами</h2>
+                <div class="page-actions">
+                    <button class="btn btn-primary" onclick="showAddItemModal()">
+                        <span class="material-icons">add</span>
+                        Додати
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="category-filter">Категорія:</label>
+                    <select id="category-filter" onchange="filterItems()">
+                        <option value="">Всі категорії</option>
+                        <!-- Categories will be loaded here -->
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="search-filter">Пошук:</label>
+                    <input type="text" id="search-filter" placeholder="Назва компонента..." oninput="filterItems()">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="location-filter">Розташування:</label>
+                    <input type="text" id="location-filter" placeholder="Місце..." oninput="filterItems()">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="quantity-filter">Кількість:</label>
+                    <select id="quantity-filter" onchange="filterItems()">
+                        <option value="">Всі</option>
+                        <option value="available">Є в наявності</option>
+                        <option value="low">Закінчується</option>
+                        <option value="none">Немає</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-sort="name">Назва</th>
+                            <th class="sortable" data-sort="category">Категорія</th>
+                            <th class="sortable" data-sort="quantity">Кількість</th>
+                            <th class="sortable" data-sort="location">Розташування</th>
+                            <th>Властивості</th>
+                            <th>Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody id="items-table-body">
+                        <!-- Items will be loaded here -->
+                    </tbody>
+                </table>
+                
+                <div class="pagination" id="items-pagination">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Presets Page -->
+        <div id="presets" class="page">
+            <div class="page-header">
+                <h2>Управління пресетами</h2>
+                <div class="page-actions">
+                    <button class="btn btn-primary" onclick="showAddPresetModal()">
+                        <span class="material-icons">add</span>
+                        Створити пресет
+                    </button>
+                </div>
+            </div>
+            
+            <div class="presets-grid" id="presets-grid">
+                <!-- Presets will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Purchases Page -->
+        <div id="purchases" class="page">
+            <div class="page-header">
+                <h2>Запити на закупівлю</h2>
+                <div class="page-actions">
+                    <button class="btn btn-primary" onclick="showPurchaseRequestModal()">
+                        <span class="material-icons">add</span>
+                        Новий запит
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="purchase-status-filter">Статус:</label>
+                    <select id="purchase-status-filter" onchange="filterPurchases()">
+                        <option value="">Всі статуси</option>
+                        <option value="pending">Очікує</option>
+                        <option value="approved">Затверджено</option>
+                        <option value="completed">Завершено</option>
+                        <option value="cancelled">Скасовано</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="purchase-search">Пошук:</label>
+                    <input type="text" id="purchase-search" placeholder="Назва або опис..." oninput="filterPurchases()">
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Компонент</th>
+                            <th>Кількість</th>
+                            <th>Запитувач</th>
+                            <th>Дедлайн</th>
+                            <th>Статус</th>
+                            <th>Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody id="purchases-table-body">
+                        <!-- Purchase requests will be loaded here -->
+                    </tbody>
+                </table>
+                
+                <div class="pagination" id="purchases-pagination">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Page -->
+        <div id="transactions" class="page">
+            <div class="page-header">
+                <h2>Історія транзакцій</h2>
+            </div>
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="transaction-type-filter">Тип:</label>
+                    <select id="transaction-type-filter" onchange="filterTransactions()">
+                        <option value="">Всі типи</option>
+                        <option value="withdrawal">Списання</option>
+                        <option value="addition">Додавання</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="transaction-user-filter">Користувач:</label>
+                    <input type="text" id="transaction-user-filter" placeholder="Ім'я користувача..." oninput="filterTransactions()">
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Компонент</th>
+                            <th>Тип</th>
+                            <th>Кількість</th>
+                            <th>Користувач</th>
+                            <th>Мета</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-table-body">
+                        <!-- Transactions will be loaded here -->
+                    </tbody>
+                </table>
+                
+                <div class="pagination" id="transactions-pagination">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Warehouse Page -->
+        <div id="warehouse" class="page">
+            <div class="page-header">
+                <h2>Склад - Візуальне управління</h2>
+                <p>3D-подібний інтерфейс складу з комірками для компонентів</p>
+                <div class="page-actions">
+                    <button class="btn btn-primary" onclick="showAddToWarehouseModal()">
+                        <span class="material-icons">add</span>
+                        Додати в комірку
+                    </button>
+                    <button class="btn btn-secondary" onclick="showWarehouseSettingsModal()">
+                        <span class="material-icons">settings</span>
+                        Налаштування
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Warehouse Grid -->
+            <div class="warehouse-container">
+                <div class="warehouse-grid">
+                    <!-- Row A -->
+                    <div class="warehouse-row">
+                        <div class="warehouse-cell" data-position="A1" onclick="selectCell('A1')">
+                            <div class="cell-label">A1</div>
+                            <div class="cell-content" id="cell-A1">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="A2" onclick="selectCell('A2')">
+                            <div class="cell-label">A2</div>
+                            <div class="cell-content" id="cell-A2">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="A3" onclick="selectCell('A3')">
+                            <div class="cell-label">A3</div>
+                            <div class="cell-content" id="cell-A3">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="A4" onclick="selectCell('A4')">
+                            <div class="cell-label">A4</div>
+                            <div class="cell-content" id="cell-A4">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="A5" onclick="selectCell('A5')">
+                            <div class="cell-label">A5</div>
+                            <div class="cell-content" id="cell-A5">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="A6" onclick="selectCell('A6')">
+                            <div class="cell-label">A6</div>
+                            <div class="cell-content" id="cell-A6">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Row B -->
+                    <div class="warehouse-row">
+                        <div class="warehouse-cell" data-position="B1" onclick="selectCell('B1')">
+                            <div class="cell-label">B1</div>
+                            <div class="cell-content" id="cell-B1">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="B2" onclick="selectCell('B2')">
+                            <div class="cell-label">B2</div>
+                            <div class="cell-content" id="cell-B2">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="B3" onclick="selectCell('B3')">
+                            <div class="cell-label">B3</div>
+                            <div class="cell-content" id="cell-B3">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="B4" onclick="selectCell('B4')">
+                            <div class="cell-label">B4</div>
+                            <div class="cell-content" id="cell-B4">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="B5" onclick="selectCell('B5')">
+                            <div class="cell-label">B5</div>
+                            <div class="cell-content" id="cell-B5">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="B6" onclick="selectCell('B6')">
+                            <div class="cell-label">B6</div>
+                            <div class="cell-content" id="cell-B6">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Row C -->
+                    <div class="warehouse-row">
+                        <div class="warehouse-cell" data-position="C1" onclick="selectCell('C1')">
+                            <div class="cell-label">C1</div>
+                            <div class="cell-content" id="cell-C1">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="C2" onclick="selectCell('C2')">
+                            <div class="cell-label">C2</div>
+                            <div class="cell-content" id="cell-C2">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="C3" onclick="selectCell('C3')">
+                            <div class="cell-label">C3</div>
+                            <div class="cell-content" id="cell-C3">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="C4" onclick="selectCell('C4')">
+                            <div class="cell-label">C4</div>
+                            <div class="cell-content" id="cell-C4">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="C5" onclick="selectCell('C5')">
+                            <div class="cell-label">C5</div>
+                            <div class="cell-content" id="cell-C5">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="warehouse-cell" data-position="C6" onclick="selectCell('C6')">
+                            <div class="cell-label">C6</div>
+                            <div class="cell-content" id="cell-C6">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Warehouse Info Panel -->
+                <div class="warehouse-info-panel">
+                    <h3>Інформація про комірку</h3>
+                    <div id="cell-info">
+                        <p>Оберіть комірку для перегляду деталей</p>
+                    </div>
+                    
+                    <div class="warehouse-stats">
+                        <h4>Статистика складу</h4>
+                        <div class="stat-item">
+                            <span class="stat-label">Заповнені комірки:</span>
+                            <span class="stat-value" id="filled-cells">0/18</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Всього компонентів:</span>
+                            <span class="stat-value" id="total-warehouse-items">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Різних типів:</span>
+                            <span class="stat-value" id="unique-item-types">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Add Item Modal -->
+    <div id="add-item-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Додати компонент</h3>
+                <button class="modal-close" onclick="closeModal('add-item-modal')">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <form id="add-item-form" class="modal-form">
+                <div class="form-group">
+                    <label for="item-name">Назва *</label>
+                    <input type="text" id="item-name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="item-category">Категорія *</label>
+                    <select id="item-category" name="category_id" required>
+                        <option value="">Виберіть категорію</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="item-description">Опис</label>
+                    <textarea id="item-description" name="description" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="item-quantity">Кількість *</label>
+                    <input type="number" id="item-quantity" name="quantity" min="0" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="item-location">Розташування</label>
+                    <input type="text" id="item-location" name="location">
+                </div>
+                
+                <div class="form-group">
+                    <label>Властивості</label>
+                    <div id="properties-container">
+                        <div class="property-row">
+                            <input type="text" placeholder="Ключ" class="property-key">
+                            <input type="text" placeholder="Значення" class="property-value">
+                            <button type="button" class="btn btn-small btn-danger" onclick="removeProperty(this)">
+                                <span class="material-icons">remove</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-small btn-secondary" onclick="addProperty()">
+                        <span class="material-icons">add</span>
+                        Додати властивість
+                    </button>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('add-item-modal')">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div id="edit-item-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Редагувати компонент</h3>
+                <button class="modal-close" onclick="closeModal('edit-item-modal')">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <form id="edit-item-form" class="modal-form">
+                <input type="hidden" id="edit-item-id" name="id">
+                
+                <div class="form-group">
+                    <label for="edit-item-name">Назва *</label>
+                    <input type="text" id="edit-item-name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-item-category">Категорія *</label>
+                    <select id="edit-item-category" name="category_id" required>
+                        <option value="">Виберіть категорію</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-item-description">Опис</label>
+                    <textarea id="edit-item-description" name="description" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-item-quantity">Кількість *</label>
+                    <input type="number" id="edit-item-quantity" name="quantity" min="0" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-item-location">Розташування</label>
+                    <input type="text" id="edit-item-location" name="location" placeholder="Наприклад: A1, B2:red1">
+                </div>
+                
+                <div class="form-group">
+                    <label>Властивості</label>
+                    <div id="edit-properties-container">
+                        <!-- Properties will be added here -->
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-small" onclick="addEditProperty()">
+                        <span class="material-icons">add</span>
+                        Додати властивість
+                    </button>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('edit-item-modal')">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти зміни</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Withdraw Item Modal -->
+    <div id="withdraw-item-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Списати компонент</h3>
+                <button class="modal-close" onclick="closeModal('withdraw-item-modal')">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <form id="withdraw-item-form" class="modal-form">
+                <div class="form-group">
+                    <label for="withdraw-item-name">Компонент</label>
+                    <input type="text" id="withdraw-item-name" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="withdraw-quantity">Кількість для списання *</label>
+                    <input type="number" id="withdraw-quantity" name="quantity" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="withdraw-purpose">Мета використання *</label>
+                    <textarea id="withdraw-purpose" name="purpose" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="withdraw-user">Ім'я користувача *</label>
+                    <input type="text" id="withdraw-user" name="user_name" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('withdraw-item-modal')">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Списати</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Preset Modal -->
+    <div id="add-preset-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Створити пресет</h3>
+                <button class="modal-close" onclick="closeModal('add-preset-modal')">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <form id="add-preset-form" class="modal-form">
+                <div class="form-group">
+                    <label for="preset-name">Назва пресету *</label>
+                    <input type="text" id="preset-name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="preset-description">Опис</label>
+                    <textarea id="preset-description" name="description" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Компоненти</label>
+                    <div id="preset-items-container">
+                        <div class="preset-item-row">
+                            <select class="preset-item-category" required>
+                                <option value="">Виберіть категорію</option>
+                                <!-- Categories will be loaded here -->
+                            </select>
+                            <input type="number" placeholder="Кількість" class="preset-item-quantity" min="1" required>
+                            <input type="text" placeholder="Вимоги/специфікації" class="preset-item-requirements">
+                            <input type="text" placeholder="Примітки" class="preset-item-notes">
+                            <button type="button" class="btn btn-small btn-danger" onclick="removePresetItem(this)">
+                                <span class="material-icons">remove</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-small btn-secondary" onclick="addPresetItem()">
+                        <span class="material-icons">add</span>
+                        Додати компонент
+                    </button>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('add-preset-modal')">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Preset Modal -->
+    <div id="edit-preset-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Редагувати пресет</h3>
+                <button class="close-btn" onclick="closeModal('edit-preset-modal')">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <form id="edit-preset-form">
+                <div class="form-group">
+                    <label for="edit-preset-name">Назва пресету</label>
+                    <input type="text" id="edit-preset-name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-preset-description">Опис</label>
+                    <textarea id="edit-preset-description" name="description" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Компоненти</label>
+                    <div id="edit-preset-items-container">
+                        <!-- Preset items will be loaded here -->
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-small" onclick="addEditPresetItem()">
+                        <span class="material-icons">add</span>
+                        Додати компонент
+                    </button>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('edit-preset-modal')">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти зміни</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Categories Page -->
+    <div id="categories" class="page">
+        <div class="page-header">
+            <h2>Управління категоріями</h2>
+            <button class="btn btn-primary" onclick="showAddCategoryModal()">
+                <span class="material-icons">add</span>
+                Додати категорію
+            </button>
+        </div>
+        
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-sort="id">ID</th>
+                        <th class="sortable" data-sort="name">Назва</th>
+                        <th>Опис</th>
+                        <th>Батьківська категорія</th>
+                        <th class="sortable" data-sort="items_count">Компонентів</th>
+                        <th>Дії</th>
+                    </tr>
+                </thead>
+                <tbody id="categories-tbody">
+                    <!-- Categories will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Purchase Request Modal -->
+    <div id="purchase-request-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Запит на закупівлю</h3>
+                <button class="modal-close" onclick="closeModal('purchase-request-modal')">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <form id="purchase-request-form" class="modal-form">
+                <div class="form-group">
+                    <label for="purchase-category">Категорія компонентів *</label>
+                    <select id="purchase-category" name="category_id" required>
+                        <option value="">Виберіть категорію</option>
+                        <!-- Categories will be loaded here -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="purchase-units">Кількість одиниць *</label>
+                    <input type="number" id="purchase-units" name="units_count" min="1" required>
+                    <small>Наприклад: 3 комп'ютери, 5 дронів</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="purchase-description">Опис</label>
+                    <textarea id="purchase-description" name="description" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="purchase-deadline">Дедлайн</label>
+                    <input type="date" id="purchase-deadline" name="deadline">
+                </div>
+                
+                <div class="form-group">
+                    <label for="purchase-requester">Запитувач *</label>
+                    <input type="text" id="purchase-requester" name="requester" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="purchase-notes">Примітки</label>
+                    <textarea id="purchase-notes" name="notes" rows="3"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('purchase-request-modal')">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Відправити</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="add-category-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Створити категорію</h3>
+                <button class="modal-close" onclick="closeModal('add-category-modal')">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <form id="add-category-form" class="modal-form">
+                <div class="form-group">
+                    <label for="category-name">Назва категорії *</label>
+                    <input type="text" id="category-name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="category-description">Опис</label>
+                    <textarea id="category-description" name="description" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="parent-category">Батьківська категорія</label>
+                    <select id="parent-category" name="parent_id">
+                        <option value="">Без батьківської категорії</option>
+                        <!-- Parent categories will be loaded here -->
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('add-category-modal')">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add to Warehouse Modal -->
+    <div id="add-to-warehouse-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Додати компонент в комірку</h3>
+                <button class="modal-close" onclick="closeModal('add-to-warehouse-modal')">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <form id="add-to-warehouse-form" class="modal-form">
+                <div class="form-group">
+                    <label for="warehouse-cell">Комірка *</label>
+                    <select id="warehouse-cell" name="cell" required>
+                        <option value="">Виберіть комірку</option>
+                        <option value="A1">A1</option>
+                        <option value="A2">A2</option>
+                        <option value="A3">A3</option>
+                        <option value="A4">A4</option>
+                        <option value="A5">A5</option>
+                        <option value="A6">A6</option>
+                        <option value="B1">B1</option>
+                        <option value="B2">B2</option>
+                        <option value="B3">B3</option>
+                        <option value="B4">B4</option>
+                        <option value="B5">B5</option>
+                        <option value="B6">B6</option>
+                        <option value="C1">C1</option>
+                        <option value="C2">C2</option>
+                        <option value="C3">C3</option>
+                        <option value="C4">C4</option>
+                        <option value="C5">C5</option>
+                        <option value="C6">C6</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="warehouse-item">Компонент *</label>
+                    <select id="warehouse-item" name="item_id" required>
+                        <option value="">Виберіть компонент</option>
+                        <!-- Items will be loaded here -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="warehouse-quantity">Кількість *</label>
+                    <input type="number" id="warehouse-quantity" name="quantity" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="warehouse-box-name">Назва коробки (необов'язково)</label>
+                    <input type="text" id="warehouse-box-name" name="box_name" placeholder="Наприклад: plastik3">
+                    <small>Для групування кількох компонентів в одну коробку</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="warehouse-color">Колір (необов'язково)</label>
+                    <select id="warehouse-color" name="color">
+                        <option value="">Без кольору</option>
+                        <option value="red">Червоний</option>
+                        <option value="green">Зелений</option>
+                        <option value="blue">Синій</option>
+                        <option value="yellow">Жовтий</option>
+                        <option value="orange">Помаранчевий</option>
+                        <option value="purple">Фіолетовий</option>
+                        <option value="pink">Рожевий</option>
+                        <option value="brown">Коричневий</option>
+                        <option value="gray">Сірий</option>
+                        <option value="black">Чорний</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="warehouse-group-number">Номер групи (необов'язково)</label>
+                    <input type="number" id="warehouse-group-number" name="group_number" min="1" placeholder="Наприклад: 4">
+                    <small>Для групування кольорових коробок</small>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('add-to-warehouse-modal')">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Додати</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Warehouse Settings Modal -->
+    <div id="warehouse-settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Налаштування складу</h3>
+                <button class="modal-close" onclick="closeModal('warehouse-settings-modal')">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-form">
+                <div class="form-group">
+                    <label>Дії зі складом</label>
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-secondary" onclick="clearAllWarehouse()">
+                            <span class="material-icons">clear_all</span>
+                            Очистити весь склад
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="exportWarehouseData()">
+                            <span class="material-icons">download</span>
+                            Експорт даних
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="importWarehouseData()">
+                            <span class="material-icons">upload</span>
+                            Імпорт даних
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Статистика</label>
+                    <div id="warehouse-settings-stats">
+                        <!-- Stats will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('warehouse-settings-modal')">Закрити</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container">
+        <!-- Toasts will be added here -->
+    </div>
+
+    <script src="assets/js/app.js?v=11"></script>
+</body>
+</html>
