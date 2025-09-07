@@ -15,6 +15,9 @@ COPY backend/ ./
 # Copy frontend static files
 COPY frontend/ ./public/
 
+# Copy start.sh from root
+COPY start.sh ./
+
 # Make start.sh executable
 RUN chmod +x start.sh
 
