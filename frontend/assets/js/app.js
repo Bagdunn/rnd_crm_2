@@ -997,11 +997,13 @@ function loadEditProperties(properties) {
 }
 
 // Add Item Form
-document.getElementById('add-item-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    try {
-        const formData = new FormData(this);
+const addItemForm = document.getElementById('add-item-form');
+if (addItemForm) {
+    addItemForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        try {
+            const formData = new FormData(this);
         const itemData = {
             name: formData.get('name'),
             category_id: parseInt(formData.get('category_id')),
@@ -1013,11 +1015,21 @@ document.getElementById('add-item-form').addEventListener('submit', async functi
         
         // Build properties object
         const propertyRows = document.querySelectorAll('.property-row');
-        propertyRows.forEach(row => {
-            const key = row.querySelector('.property-key').value.trim();
-            const value = row.querySelector('.property-value').value.trim();
-            if (key && value) {
-                itemData.properties[key] = value;
+        console.log('Found property rows:', propertyRows.length);
+        propertyRows.forEach((row, index) => {
+            const keyInput = row.querySelector('.property-key');
+            const valueInput = row.querySelector('.property-value');
+            
+            console.log(`Property row ${index}:`, { keyInput, valueInput });
+            
+            if (keyInput && valueInput) {
+                const key = keyInput.value.trim();
+                const value = valueInput.value.trim();
+                if (key && value) {
+                    itemData.properties[key] = value;
+                }
+            } else {
+                console.warn(`Property row ${index} missing inputs:`, { keyInput, valueInput });
             }
         });
         
@@ -1054,11 +1066,14 @@ document.getElementById('add-item-form').addEventListener('submit', async functi
             showToast(`Помилка: ${error.error}`, 'error');
         }
         
-    } catch (error) {
-        console.error('Error adding item:', error);
-        showToast('Помилка додавання компонента', 'error');
-    }
-});
+        } catch (error) {
+            console.error('Error adding item:', error);
+            showToast('Помилка додавання компонента', 'error');
+        }
+    });
+} else {
+    console.error('Add item form not found');
+}
 
 // Withdraw Item Modal
 function withdrawItem(itemId, itemName, currentQuantity) {
