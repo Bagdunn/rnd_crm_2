@@ -368,7 +368,7 @@ router.get('/warehouse/data', authenticateToken, async (req, res) => {
 router.put('/:id/location', [
   authenticateToken,
   requireRole(['admin', 'manager']),
-  body('location').notEmpty().trim().escape()
+  body('location').optional().trim().escape()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -379,9 +379,12 @@ router.put('/:id/location', [
     const { id } = req.params;
     const { location } = req.body;
     
+    // Handle empty location (remove from warehouse)
+    const locationValue = location || null;
+    
     const result = await db.query(
       'UPDATE items SET location = $1 WHERE id = $2 RETURNING *',
-      [location, id]
+      [locationValue, id]
     );
     
     if (result.rows.length === 0) {
