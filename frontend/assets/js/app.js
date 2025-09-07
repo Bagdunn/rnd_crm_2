@@ -328,10 +328,14 @@ function initializeEventListeners() {
         if (e.target.matches('[onclick*="changeItemColor"]') || e.target.closest('[onclick*="changeItemColor"]')) {
             e.preventDefault();
             const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
-            const match = onclick.match(/changeItemColor\('(\d+)',\s*'([^']+)'\)/);
+            console.log('Change color onclick:', onclick);
+            const match = onclick.match(/changeItemColor\('([^']+)',\s*'([^']+)'\)/);
             if (match) {
                 const [, itemId, cellId] = match;
+                console.log('Change color match:', { itemId, cellId });
                 changeItemColor(parseInt(itemId), cellId);
+            } else {
+                console.warn('No match for changeItemColor:', onclick);
             }
         }
         
@@ -339,10 +343,14 @@ function initializeEventListeners() {
         if (e.target.matches('[onclick*="removeItemFromCell"]') || e.target.closest('[onclick*="removeItemFromCell"]')) {
             e.preventDefault();
             const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
-            const match = onclick.match(/removeItemFromCell\('([^']+)',\s*'(\d+)'\)/);
+            console.log('Remove item onclick:', onclick);
+            const match = onclick.match(/removeItemFromCell\('([^']+)',\s*'([^']+)'\)/);
             if (match) {
                 const [, cellId, itemId] = match;
+                console.log('Remove item match:', { cellId, itemId });
                 removeItemFromCell(cellId, parseInt(itemId));
+            } else {
+                console.warn('No match for removeItemFromCell:', onclick);
             }
         }
         
