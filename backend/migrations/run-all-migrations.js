@@ -34,16 +34,46 @@ async function runMigrations() {
     
     console.log(`Found ${migrationFiles.length} migration files`);
     
+    // Get already executed migrations
+    let executedMigrations = [];
+    try {
+      const result = await client.query('SELECT filename FROM migrations ORDER BY id');
+      executedMigrations = result.rows.map(row => row.filename);
+      console.log(`Found ${executedMigrations.length} already executed migrations`);
+    } catch (error) {
+      // Migrations table doesn't exist yet, will be created by first migration
+      console.log('Migrations table not found, will be created');
+    }
+    
+    let newMigrationsCount = 0;
+    
     for (const file of migrationFiles) {
+      // Skip if migration already executed
+      if (executedMigrations.includes(file)) {
+        console.log(`⏭ Skipped (already executed): ${file}`);
+        continue;
+      }
+      
       console.log(`Running migration: ${file}`);
       
       try {
         const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
         await client.query(sql);
+        
+        // Record migration as executed
+        await client.query('INSERT INTO migrations (filename) VALUES ($1)', [file]);
+        
         console.log(`✓ Completed: ${file}`);
+        newMigrationsCount++;
       } catch (error) {
         if (error.code === '42710') { // Object already exists
           console.log(`⚠ Skipped (already exists): ${file}`);
+          // Still record as executed to avoid future attempts
+          try {
+            await client.query('INSERT INTO migrations (filename) VALUES ($1) ON CONFLICT (filename) DO NOTHING', [file]);
+          } catch (insertError) {
+            // Ignore insert errors for already existing migrations
+          }
         } else {
           console.log(`Migration failed: ${error.message}`);
           throw error;
@@ -52,7 +82,7 @@ async function runMigrations() {
     }
     
     client.release();
-    console.log('All migrations completed successfully!');
+    console.log(`All migrations completed successfully! ${newMigrationsCount} new migrations executed.`);
     
   } catch (error) {
     console.error('Migration error:', error);
