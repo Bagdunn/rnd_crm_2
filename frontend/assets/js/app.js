@@ -345,6 +345,74 @@ function initializeEventListeners() {
                 removeItemFromCell(cellId, parseInt(itemId));
             }
         }
+        
+        // Update purchase status buttons
+        if (e.target.matches('[onclick*="updatePurchaseStatus"]') || e.target.closest('[onclick*="updatePurchaseStatus"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const match = onclick.match(/updatePurchaseStatus\((\d+),\s*'([^']+)'\)/);
+            if (match) {
+                const [, requestId, status] = match;
+                updatePurchaseStatus(parseInt(requestId), status);
+            }
+        }
+        
+        // Complete purchase buttons
+        if (e.target.matches('[onclick*="completePurchase"]') || e.target.closest('[onclick*="completePurchase"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const requestId = onclick.match(/completePurchase\((\d+)\)/)?.[1];
+            if (requestId) {
+                completePurchase(parseInt(requestId));
+            }
+        }
+        
+        // Delete purchase buttons
+        if (e.target.matches('[onclick*="deletePurchase"]') || e.target.closest('[onclick*="deletePurchase"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const requestId = onclick.match(/deletePurchase\((\d+)\)/)?.[1];
+            if (requestId) {
+                deletePurchase(parseInt(requestId));
+            }
+        }
+        
+        // Preset buttons
+        if (e.target.matches('[onclick*="checkPresetAvailability"]') || e.target.closest('[onclick*="checkPresetAvailability"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const presetId = onclick.match(/checkPresetAvailability\((\d+)\)/)?.[1];
+            if (presetId) {
+                checkPresetAvailability(parseInt(presetId));
+            }
+        }
+        
+        if (e.target.matches('[onclick*="withdrawFromPreset"]') || e.target.closest('[onclick*="withdrawFromPreset"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const presetId = onclick.match(/withdrawFromPreset\((\d+)\)/)?.[1];
+            if (presetId) {
+                withdrawFromPreset(parseInt(presetId));
+            }
+        }
+        
+        if (e.target.matches('[onclick*="editPreset"]') || e.target.closest('[onclick*="editPreset"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const presetId = onclick.match(/editPreset\((\d+)\)/)?.[1];
+            if (presetId) {
+                editPreset(parseInt(presetId));
+            }
+        }
+        
+        if (e.target.matches('[onclick*="deletePreset"]') || e.target.closest('[onclick*="deletePreset"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const presetId = onclick.match(/deletePreset\((\d+)\)/)?.[1];
+            if (presetId) {
+                deletePreset(parseInt(presetId));
+            }
+        }
     });
     
     console.log('Event listeners initialized');
