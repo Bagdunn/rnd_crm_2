@@ -24,5 +24,5 @@ RUN chmod +x start.sh
 # Expose port
 EXPOSE 3000
 
-# Start with start.sh
-CMD ["./start.sh"]
+# Use start.sh as entrypoint
+ENTRYPOINT ["./start.sh"]
