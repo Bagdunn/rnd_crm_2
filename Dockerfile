@@ -1,43 +1,31 @@
-# Multi-stage build for Railway deployment
-FROM node:18-alpine AS backend-builder
-
-WORKDIR /app/backend
-COPY backend/package*.json ./
-RUN npm ci --only=production
-
-FROM nginx:alpine AS frontend-builder
-
-WORKDIR /app/frontend
-COPY frontend/ ./
-COPY frontend/nginx.conf /etc/nginx/nginx.conf
-
-FROM node:18-alpine AS runtime
-
-# Install Docker and Docker Compose
-RUN apk add --no-cache docker docker-compose
+# Railway deployment - Backend only
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy backend
-COPY --from=backend-builder /app/backend ./backend
+# Copy package files
+COPY backend/package*.json ./
 
-# Copy frontend
-COPY --from=frontend-builder /usr/share/nginx/html ./frontend
+# Install dependencies
+RUN npm ci --only=production
 
-# Copy configuration files
-COPY docker-compose.yml ./
-COPY docker-compose.prod.yml ./
+# Copy backend source code
+COPY backend/ ./
 
-# Copy scripts
-COPY start.sh ./
-RUN chmod +x start.sh
+# Copy frontend static files to serve them
+COPY frontend/ ./public/
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+USER nodejs
 
 # Expose port
 EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
-# Start command
-CMD ["./start.sh"]
+# Start the application with migrations
+CMD ["node", "start.js"]

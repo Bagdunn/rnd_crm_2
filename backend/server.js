@@ -57,17 +57,17 @@ app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/purchase-requests', require('./routes/purchase-requests'));
 app.use('/api/auth', require('./routes/auth'));
 
-// Serve static files from frontend
-app.use(express.static(path.join(__dirname, '../frontend')));
+// Serve static files from public directory (for Railway deployment)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve login page
 app.get('/login.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/login.html'));
+  res.sendFile(path.join(__dirname, 'public/login.html'));
 });
 
 // Catch all handler for SPA (authenticated routes)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
 // Error handling middleware
