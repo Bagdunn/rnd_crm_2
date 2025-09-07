@@ -67,6 +67,7 @@ function updateUserInfo() {
 function initializeApp() {
     console.log('Initializing app...');
     initializeNavigation();
+    initializeEventListeners();
     loadCategories();
     
     // Show warehouse by default or restore saved page
@@ -137,6 +138,216 @@ function initializeNavigation() {
             switchPage(page);
         });
     });
+}
+
+function initializeEventListeners() {
+    console.log('Initializing event listeners...');
+    
+    // Logout button
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('.logout-btn') || e.target.closest('.logout-btn')) {
+            e.preventDefault();
+            logout();
+        }
+    });
+    
+    // Modal close buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('.modal-close') || e.target.closest('.modal-close')) {
+            e.preventDefault();
+            const modal = e.target.closest('.modal');
+            if (modal) {
+                closeModal(modal.id);
+            }
+        }
+    });
+    
+    // Warehouse cells
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('.warehouse-cell') || e.target.closest('.warehouse-cell')) {
+            e.preventDefault();
+            const cell = e.target.closest('.warehouse-cell');
+            if (cell && cell.dataset.position) {
+                selectCell(cell.dataset.position);
+            }
+        }
+    });
+    
+    // Add item modal button
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[onclick*="showAddItemModal"]') || e.target.closest('[onclick*="showAddItemModal"]')) {
+            e.preventDefault();
+            showAddItemModal();
+        }
+    });
+    
+    // Add preset modal button
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[onclick*="showAddPresetModal"]') || e.target.closest('[onclick*="showAddPresetModal"]')) {
+            e.preventDefault();
+            showAddPresetModal();
+        }
+    });
+    
+    // Add category modal button
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[onclick*="showAddCategoryModal"]') || e.target.closest('[onclick*="showAddCategoryModal"]')) {
+            e.preventDefault();
+            showAddCategoryModal();
+        }
+    });
+    
+    // Purchase request modal button
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[onclick*="showPurchaseRequestModal"]') || e.target.closest('[onclick*="showPurchaseRequestModal"]')) {
+            e.preventDefault();
+            showPurchaseRequestModal();
+        }
+    });
+    
+    // Add to warehouse modal button
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[onclick*="showAddToWarehouseModal"]') || e.target.closest('[onclick*="showAddToWarehouseModal"]')) {
+            e.preventDefault();
+            const cellId = e.target.dataset.cellId || '';
+            showAddToWarehouseModal(cellId);
+        }
+    });
+    
+    // Filter dropdowns
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('#category-filter, #quantity-filter')) {
+            filterItems();
+        } else if (e.target.matches('#purchase-status-filter')) {
+            filterPurchases();
+        } else if (e.target.matches('#transaction-type-filter')) {
+            filterTransactions();
+        }
+    });
+    
+    // Remove property buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[onclick*="removeProperty"]') || e.target.closest('[onclick*="removeProperty"]')) {
+            e.preventDefault();
+            removeProperty(e.target);
+        }
+    });
+    
+    // Add property button
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[onclick*="addProperty"]') || e.target.closest('[onclick*="addProperty"]')) {
+            e.preventDefault();
+            addProperty();
+        }
+    });
+    
+    // Remove preset item buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[onclick*="removePresetItem"]') || e.target.closest('[onclick*="removePresetItem"]')) {
+            e.preventDefault();
+            removePresetItem(e.target);
+        }
+    });
+    
+    // Add preset item button
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[onclick*="addPresetItem"]') || e.target.closest('[onclick*="addPresetItem"]')) {
+            e.preventDefault();
+            addPresetItem();
+        }
+    });
+    
+    // Cancel buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[onclick*="closeModal"]') || e.target.closest('[onclick*="closeModal"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            if (onclick && onclick.includes('closeModal')) {
+                const modalId = onclick.match(/closeModal\('([^']+)'\)/)?.[1];
+                if (modalId) {
+                    closeModal(modalId);
+                }
+            }
+        }
+    });
+    
+    // Dynamic buttons in tables and lists
+    document.addEventListener('click', function(e) {
+        // Edit item buttons
+        if (e.target.matches('[onclick*="editItem"]') || e.target.closest('[onclick*="editItem"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const itemId = onclick.match(/editItem\((\d+)\)/)?.[1];
+            if (itemId) {
+                editItem(parseInt(itemId));
+            }
+        }
+        
+        // Delete item buttons
+        if (e.target.matches('[onclick*="deleteItem"]') || e.target.closest('[onclick*="deleteItem"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const itemId = onclick.match(/deleteItem\((\d+)\)/)?.[1];
+            if (itemId) {
+                deleteItem(parseInt(itemId));
+            }
+        }
+        
+        // Withdraw item buttons
+        if (e.target.matches('[onclick*="withdrawItem"]') || e.target.closest('[onclick*="withdrawItem"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const match = onclick.match(/withdrawItem\((\d+),\s*'([^']+)',\s*(\d+)\)/);
+            if (match) {
+                const [, itemId, itemName, quantity] = match;
+                withdrawItem(parseInt(itemId), itemName, parseInt(quantity));
+            }
+        }
+        
+        // Edit category buttons
+        if (e.target.matches('[onclick*="editCategory"]') || e.target.closest('[onclick*="editCategory"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const categoryId = onclick.match(/editCategory\((\d+)\)/)?.[1];
+            if (categoryId) {
+                editCategory(parseInt(categoryId));
+            }
+        }
+        
+        // Delete category buttons
+        if (e.target.matches('[onclick*="deleteCategory"]') || e.target.closest('[onclick*="deleteCategory"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const categoryId = onclick.match(/deleteCategory\((\d+)\)/)?.[1];
+            if (categoryId) {
+                deleteCategory(parseInt(categoryId));
+            }
+        }
+        
+        // Change item color buttons
+        if (e.target.matches('[onclick*="changeItemColor"]') || e.target.closest('[onclick*="changeItemColor"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const match = onclick.match(/changeItemColor\('(\d+)',\s*'([^']+)'\)/);
+            if (match) {
+                const [, itemId, cellId] = match;
+                changeItemColor(parseInt(itemId), cellId);
+            }
+        }
+        
+        // Remove item from cell buttons
+        if (e.target.matches('[onclick*="removeItemFromCell"]') || e.target.closest('[onclick*="removeItemFromCell"]')) {
+            e.preventDefault();
+            const onclick = e.target.getAttribute('onclick') || e.target.closest('[onclick]')?.getAttribute('onclick');
+            const match = onclick.match(/removeItemFromCell\('([^']+)',\s*'(\d+)'\)/);
+            if (match) {
+                const [, cellId, itemId] = match;
+                removeItemFromCell(cellId, parseInt(itemId));
+            }
+        }
+    });
+    
+    console.log('Event listeners initialized');
 }
 
 function initializeTableSorting() {
